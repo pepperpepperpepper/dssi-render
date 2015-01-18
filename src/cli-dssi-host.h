@@ -65,9 +65,47 @@
 #include <libgen.h>
 
 
+
+extern   char *midi_filename;
+extern const DSSI_Descriptor *descriptor;
+extern LADSPA_Handle instanceHandle;
+extern SNDFILE *outfile;
+extern char *output_file;
+extern   int clip;
+extern   int have_warned;
+extern   int nchannels;
+extern DSSI_Descriptor_Function descfn;
+extern   void *pluginObject;
+extern   SF_INFO outsfinfo;
+extern   char **configure_key;
+extern   char **configure_val;
+extern   char *directory;
+extern   char *dllName;
+extern   char *label;
+extern   char *projectDirectory;
+extern   int in, out, controlIn, controlOut;
+extern   int ins, outs, controlIns, controlOuts;
+extern   int midi_velocity;
+extern   int midi_note;
+extern   int bank;
+extern   int program_no;
+extern   int nkeys;
+extern   size_t length;
+extern   size_t release_tail;
+extern   size_t nframes;
+extern   size_t total_written;
+extern   size_t items_written;
+extern   float **pluginInputBuffers;
+extern float **pluginOutputBuffers;
+extern   float *pluginControlIns;
+extern float *pluginControlOuts;
+
+//awesome, worked, right? yeah
+//so what is extern doing? basically it says that there is a variable, but doesn't allocate it by itself, so same varable can be shared between two code from different object files. and are extern definitions like this usually kept in the header files? yes ok
+char *my_name;
+#ifdef CLI_FUNCS 
 static float sample_rate;
 static int verbose = 0;
-char *my_name;
 
 LADSPA_Data get_port_random(const LADSPA_Descriptor *plugin, int port)
 {
@@ -157,6 +195,7 @@ LADSPA_Data get_port_default(const LADSPA_Descriptor *plugin, int port)
   /* fallback */
   return 0.0f;
 }
+
 
 
 
@@ -281,6 +320,7 @@ parse_keyval(char *input, char sep, char **key, char **val) {
     *val = NULL;
   }
 }
+#endif
 
 typedef enum {
   from_stdin,

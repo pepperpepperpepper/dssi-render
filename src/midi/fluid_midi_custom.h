@@ -1,5 +1,8 @@
+typedef struct _fluid_list_t fluid_list_t;
+
 typedef struct _fluid_midi_event_t fluid_midi_event_t;
 typedef struct _fluid_player_t fluid_player_t;
+typedef struct _fluid_track_t fluid_track_t;
 typedef struct _fluid_synth_t fluid_synth_t;
 typedef struct _fluid_timer_t fluid_timer_t;
 typedef struct _fluid_sample_timer_t fluid_sample_timer_t;

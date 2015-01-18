@@ -1,5 +1,7 @@
 AC_INIT(src/cli-dssi-host.c)
 
+LT_INIT
+
 PACKAGE=cli-dssi-host
 VERSION=0.1.3
 
@@ -25,4 +27,4 @@ AC_SUBST(SNDFILE_LIBS)
 
 AC_PROG_CC
 
-AC_OUTPUT(Makefile src/Makefile midi/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/midi/Makefile)

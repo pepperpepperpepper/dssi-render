@@ -22,7 +22,8 @@
 #ifndef _FLUIDSYNTH_PRIV_H
 #define _FLUIDSYNTH_PRIV_H
 
-#include "custom.h"
+#include "fluid_midi_custom.h"
+#include "midi_loader.h"
 //#include <glib.h>
 #include <stdint.h>
 #include <stdio.h>

@@ -20,8 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 01222-1307
  * USA
  */
+#define CLI_FUNCS
 
 #include "cli-dssi-host.h"
+#include "ladspa_run_synth.h"
+#include "midi/midi_loader.h" 
+
 
 void
 print_usage(void) {
@@ -44,17 +48,19 @@ print_usage(void) {
   exit(1);
 }
   
-int
-main(int argc, char **argv) {
+const DSSI_Descriptor *descriptor;
+LADSPA_Handle instanceHandle;
+SNDFILE *outfile;
+char *output_file = "output.wav";
+char *midi_filename = "example.mid";
+  int clip = 0;
+  int have_warned = 0;
+  int nchannels = 1;
 
-  my_name = basename(argv[0]);
-
-  DSSI_Descriptor_Function descfn;
-  const DSSI_Descriptor *descriptor;
-  LADSPA_Handle instanceHandle;
+// check later {{{  
+DSSI_Descriptor_Function descfn;
   void *pluginObject;
 
-  SNDFILE *outfile;
   SF_INFO outsfinfo;
 
   char **configure_key = NULL;
@@ -62,20 +68,16 @@ main(int argc, char **argv) {
   char *directory = NULL;
   char *dllName = NULL;
   char *label;
-  char *output_file = "output.wav";
   char *projectDirectory = NULL;
 
   int in, out, controlIn, controlOut;
   int ins, outs, controlIns, controlOuts;
   port_vals_source_t src = from_stdin;
-  int nchannels = 1;
   int midi_velocity = 127;
   int midi_note = 60;
   int bank = 0;
   int program_no = 0;
   int nkeys = 0;
-  int clip = 0;
-  int have_warned = 0;
 
 
   size_t length = SAMPLE_RATE;
@@ -86,6 +88,49 @@ main(int argc, char **argv) {
   
   float **pluginInputBuffers, **pluginOutputBuffers;
   float *pluginControlIns, *pluginControlOuts;
+//}}}
+
+void connect_ports(void){
+  in = out = controlIn = controlOut = 0;
+  for (int j = 0; j < descriptor->LADSPA_Plugin->PortCount; j++) {  
+    /* j is LADSPA port number */
+    
+    LADSPA_PortDescriptor pod =
+      descriptor->LADSPA_Plugin->PortDescriptors[j];
+    
+    if (LADSPA_IS_PORT_AUDIO(pod)) {
+      
+      if (LADSPA_IS_PORT_INPUT(pod)) {
+	descriptor->LADSPA_Plugin->connect_port
+	  (instanceHandle, j, pluginInputBuffers[in++]);
+	
+      } else if (LADSPA_IS_PORT_OUTPUT(pod)) {
+	descriptor->LADSPA_Plugin->connect_port
+	  (instanceHandle, j, pluginOutputBuffers[out++]);
+      }
+      
+    } else if (LADSPA_IS_PORT_CONTROL(pod)) {
+      
+      if (LADSPA_IS_PORT_INPUT(pod)) {
+	
+	descriptor->LADSPA_Plugin->connect_port
+	  (instanceHandle, j, &pluginControlIns[controlIn++]);
+	
+      } else if (LADSPA_IS_PORT_OUTPUT(pod)) {
+	descriptor->LADSPA_Plugin->connect_port
+	  (instanceHandle, j, &pluginControlOuts[controlOut++]);
+      }
+    }
+  }  /* 'for (j...'  LADSPA port number */
+
+
+}
+  
+int
+main(int argc, char **argv) {
+
+  my_name = basename(argv[0]);
+
 
   sample_rate = SAMPLE_RATE;
   
@@ -259,9 +304,8 @@ main(int argc, char **argv) {
   pluginControlOuts = (float *)calloc(controlOuts, sizeof(float));
 
   for (int i = 0; i < outs; i++) {
-    pluginOutputBuffers[i] = (float *)calloc(nframes, sizeof(float));
+    pluginOutputBuffers[i] = NULL;
   }
-
 
 
   /* Instantiate plugin */
@@ -276,40 +320,9 @@ main(int argc, char **argv) {
   }
 
   /* Connect ports */
+//this works a bit weird for some plugins...FIXME
 
-  in = out = controlIn = controlOut = 0;
-  for (int j = 0; j < descriptor->LADSPA_Plugin->PortCount; j++) {  
-    /* j is LADSPA port number */
-    
-    LADSPA_PortDescriptor pod =
-      descriptor->LADSPA_Plugin->PortDescriptors[j];
-    
-    if (LADSPA_IS_PORT_AUDIO(pod)) {
-      
-      if (LADSPA_IS_PORT_INPUT(pod)) {
-	descriptor->LADSPA_Plugin->connect_port
-	  (instanceHandle, j, pluginInputBuffers[in++]);
-	
-      } else if (LADSPA_IS_PORT_OUTPUT(pod)) {
-	descriptor->LADSPA_Plugin->connect_port
-	  (instanceHandle, j, pluginOutputBuffers[out++]);
-      }
-      
-    } else if (LADSPA_IS_PORT_CONTROL(pod)) {
-      
-      if (LADSPA_IS_PORT_INPUT(pod)) {
-	
-	descriptor->LADSPA_Plugin->connect_port
-	  (instanceHandle, j, &pluginControlIns[controlIn++]);
-	
-      } else if (LADSPA_IS_PORT_OUTPUT(pod)) {
-	descriptor->LADSPA_Plugin->connect_port
-	  (instanceHandle, j, &pluginControlOuts[controlOut++]);
-      }
-    }
-  }  /* 'for (j...'  LADSPA port number */
-
-
+  connect_ports();
 
   /* Set the control port values */
 
@@ -422,6 +435,7 @@ main(int argc, char **argv) {
     }
   }
 
+//I changed the midi file a tiny bit, should we try again? sure 
 
   /* Open sndfile */
 
@@ -438,171 +452,162 @@ main(int argc, char **argv) {
     return 1;
   }
 
-
-  /* Instead of creating an alsa midi input, we fill in two events
-   * note-on and note-off */
-
-  snd_seq_event_t on_event, off_event, *current_event; // snd_seq_event_t's so we just need to fill array of those for curently pressed notes and send them. and we can be sure it's a simple array, not some linked list or something? yes because if it were the linked list, it wouldn't have the length passed with it? yep got it
-  on_event.type = SND_SEQ_EVENT_NOTEON;
-  on_event.data.note.channel = 0;
-  on_event.data.note.note = midi_note;
-  on_event.data.note.velocity = midi_velocity;
-  on_event.time.tick = 0;
-
-  off_event.type = SND_SEQ_EVENT_NOTEOFF;
-  off_event.data.note.channel = 0;
-  off_event.data.note.note = midi_note;
-  off_event.data.note.off_velocity = midi_velocity;
-  off_event.time.tick = 0;
-
-  /* Generate the data: send an on-event, wait, send an off-event, 
-     wait for release tail to die */
-  total_written = 0;
-  int finished = 0;
-  unsigned long nevents;
-  while (!finished) {
-    if (total_written == 0) {
-      current_event = &on_event; //so this is just putting one in, but that's because it's the first maybe? yes so if there is only one element you can just create a pointer from it and tha't it. but if you have two or more you have to arrange them sequentually in memory, like array. I see what threw me off...ohh because this thing only makes a one note recording...got it
-//well should we check dssi.h just to be sure, and to look at how current_event array needs to be made? no need array is of 
-      nevents = 1;
-    } else if (total_written >= length && total_written < length + nframes) {// this condition
-      current_event = &off_event;
-      nevents = 1;
-    } else {
-      current_event = NULL;
-      nevents = 0;
-    }
-
-/*     if (DEBUG) { */
-/*       fprintf(stderr, "about to call run_synth() or run_multiple_synths() with %ld events\n", nevents); */
-/*     } */
-//ok so here it does all of the action...I might be wrong, but it seems to me that it calls run_synth on both the note_on event and the note_off
-//almost so it loops over time, and if note is pressed it set note_on as current_event, and so on. what do you mean by note is pressed? 
-//it generates the event from the args I thought? so it looks like then it starts it set event to note_on, then it loops while there is that
-//condition, and it stops then. right...so what we don't know from this source is how to deal with the situation when there are two
-//note_on events overlapping? right, so ideally if plugin can work such way, it can just receive notes and generate complete soundwave with all samples playing at the same time, but if not - most likely you will have to load several such dssi hosts and have it sort of on different channels and then merge output from each plugin into one wave. I doubt the second would be necessary seems much more likely that the plugins are ready to received
-//multiple events simultaneously...I guess what is unclear to me is what should be used for the nframes variable, ohhhhh I see, 
-//so it just is going through the midi file, and each event it sees it sends to plugin + nframes for the difference in frames between the two events?  maybe the plugin will have to keep a state to know how many note_on and note_off events are currently active? yeah so in midi it's note_on\off pairs which should be processed. as for plugin - it should, but i doubt it does that, need to check plugins code, i think they all so simple they supposed to work in single note mode. well it's a bit confusing because I know for a fact that soundfonts are that simple, they are basically just a sample and little more data, and that fluidsynth+timidity have to create a virtual synth around all of that, but I think the dssi plugins are a bit more sophisticated...should we look at the plugin code? xsynth or something? yep 
+//  {{{ original
+//  /* Instead of creating an alsa midi input, we fill in two events
+//   * note-on and note-off */
 //
-//ohh i see it now, it's not event actually to plugin, just a state which is sent every time we call run_synth, so plugin knows with notes
-//are currently pressed. that's good, right? yeah looks So
-//whew, ok so we send a new state every time there's a new event? no we keep iterating over time and every time we need to know which midi notes are pressed, then we construct this "current_event" buffer with events and send them all together to this plugin. right...so when is it that we need to know which notes are pressed? is that only when there's a new event? or is that every set duration of time yes every time we call run_synth, at it's called for every sound pressure sample. 44100 times per second. run synth is called 44100 times per second? well it's executed 44100 times to generate one second of audio output. wow ok
-//what seems to be the easiest way to proceed from here? so need to parse midi file to construct list of events, and then write a loop over time so we could know which notes are pressed, so can generate events for dssi. do you think we need C to parse the midi file? well unless thre is for example perl dssi host it has to be C because need to execute plugin. do you think it might be easier to alter this code and create perl handles for it with something like swig? not really, C code will be easier to write, also you have several projects to choose code from for midi parsing. right...so before we look at that, should we look one last time at dssi to see exactly what the run_synth function takes for args? sure
+//  snd_seq_event_t on_event, off_event, *current_event; // snd_seq_event_t's so we just need to fill array of those for curently pressed notes and send them. and we can be sure it's a simple array, not some linked list or something? yes because if it were the linked list, it wouldn't have the length passed with it? yep got it
+//  on_event.type = SND_SEQ_EVENT_NOTEON;
+//  on_event.data.note.channel = 0;
+//  on_event.data.note.note = midi_note;
+//  on_event.data.note.velocity = midi_velocity;
+//  on_event.time.tick = 0;
+//
+//  off_event.type = SND_SEQ_EVENT_NOTEOFF;
+//  off_event.data.note.channel = 0;
+//  off_event.data.note.note = midi_note;
+//  off_event.data.note.off_velocity = midi_velocity;
+//  off_event.time.tick = 0;
+//
+//  /* Generate the data: send an on-event, wait, send an off-event, 
+//     wait for release tail to die */
+//  total_written = 0;
+//  int finished = 0;
+//  unsigned long nevents;
+//  //here's the while loop I guess, what should we do about this condition "finished"? we will just remove it all. need to move body for this while into separate function, so we could supply it as callback hmm maybe we should move it all to a separate file, so that this one can be for processing command line args? yeah
+//  while (!finished) {
+//    if (total_written == 0) {
+//      current_event = &on_event; //so this is just putting one in, but that's because it's the first maybe? yes so if there is only one element you can just create a pointer from it and tha't it. but if you have two or more you have to arrange them sequentually in memory, like array. I see what threw me off...ohh because this thing only makes a one note recording...got it
+////well should we check dssi.h just to be sure, and to look at how current_event array needs to be made? no need array is of 
+//      nevents = 1;
+//    } else if (total_written >= length && total_written < length + nframes) {// this condition
+//      current_event = &off_event;
+//      nevents = 1;
+//    } else {
+//      current_event = NULL;
+//      nevents = 0;
+//    }
+//
+///*     if (DEBUG) { */
+///*       fprintf(stderr, "about to call run_synth() or run_multiple_synths() with %ld events\n", nevents); */
+///*     } */
+//
+// what was happening with this? do you think the wrong file was being edited at some point? could be
+//    if (descriptor->run_synth) {
+//      descriptor->run_synth(instanceHandle,
+//			    nframes, 
+//			    current_event,
+//			    nevents);
+//    } else if (descriptor->run_multiple_synths) {
+//      descriptor->run_multiple_synths(1,
+//				      &instanceHandle,
+//				      nframes,
+//				      &current_event,
+//				      &nevents);
+//    }
+//how much do we want to take out? whole while loop, it's still inside it i think
 
-
-
-    if (descriptor->run_synth) {
-      descriptor->run_synth(instanceHandle,
-			    nframes, 
-			    current_event,
-			    nevents);
-    } else if (descriptor->run_multiple_synths) {
-      descriptor->run_multiple_synths(1,
-				      &instanceHandle,
-				      nframes,
-				      &current_event,
-				      &nevents);
-    }
-
-    /* Interleaving for libsndfile. */
-    float sf_output[nchannels * nframes];
-    for (int i = 0; i < nframes; i++) {
-      /* First, write all the obvious channels */
-      for (int j = 0; j < min(outs, nchannels); j++) {
-	/* If outs > nchannels, we *could* do mixing - but don't. */
-	sf_output[i * nchannels + j] = pluginOutputBuffers[j][i];
-      }
-      /* Then, if user wants *more* output channels than there are
-       * audio output ports (ie outs < nchannels), copy the last audio
-       * out to all the remaining channels. If outs >= nchannels, this
-       * loop is never entered. */
-      for (int j = outs; j < nchannels; j++) {
-	sf_output[i * nchannels + j] = pluginOutputBuffers[outs - 1][i];
-      }
-    }
-
-    if (clip) {
-      for (int i = 0; i < nframes * nchannels; i++) {
-	if (!finite(sf_output[i])) {
-	  if (!have_warned) {
-	    have_warned = 1;
-	    fprintf(stderr, 
-		    "%s: Warning: clipping NaN or Inf in synthesized data\n", 
-		    my_name);
-	  }
-	  if (sf_output[i] < 0.0f) {
-	    sf_output[i] = -1.0f;
-	  } else {
-	    sf_output[i] = 1.0f;
-	  }
-	} else {
-	  if (sf_output[i] < -1.0f) {
-	    if (!have_warned) {
-	      have_warned = 1;
-	      fprintf(stderr, 
-		      "%s: Warning: clipping out-of-bounds value in synthesized data\n", 
-		      my_name);
-	    }
-	    sf_output[i] = -1.0f;
-	  } else if (sf_output[i] > 1.0f) {
-	    if (!have_warned) {
-	      have_warned = 1;
-	      fprintf(stderr, 
-		      "%s: Warning: clipping out-of-bounds value in synthesized data\n", 
-		      my_name);
-	    }
-	    sf_output[i] = 1.0f;
-	  }
-	}
-      }
-    } else {
-      for (int i = 0; i < nframes * nchannels; i++) {
-	if (!finite(sf_output[i])) {
-	  fprintf(stderr, "%s: Error: NaN or Inf in synthesized data\n",
-		  my_name);
-	  exit(1);
-	}
-	if (sf_output[i] > 1.0f
-	    || sf_output[i] < -1.0f) {
-	  fprintf(stderr, "%s: Error: sample data out of bounds\n",
-		  my_name);
-	  exit(1);
-	}
-      }
-    }
-
-    /* Write the audio */
-    if ((items_written = sf_writef_float(outfile, 
-					 sf_output,
-					 nframes)) != nframes) {
-      fprintf(stderr, "%s: Error: can't write data to output file %s\n", 
-	      my_name, output_file);
-      fprintf(stderr, "%s: %s\n", my_name, sf_strerror(outfile));
-      return 1;
-    }
-    
-    total_written += items_written;
-    if (release_tail >= 0) {
-      if (total_written > length + release_tail) {
-	finished = 1;
-      }
-    } else {
-      if (total_written > length 
-	  && is_silent(sf_output, nframes * nchannels)) {
-	finished = 1;
-      } else if (total_written > MAX_LENGTH * sample_rate) {
-	/* The default sineshaper patch never releases, after a note-off,
-	 * to silence. So truncate. This is sineshaper 0.3.0 (so maybe it's 
-	 * different in the new version) and here I mean the default
-	 * patch as returned by the get_port_default() function, not the 
-	 * default set by the sineshaper UI.
-	 */
-	finished = 1;
-	fprintf(stderr, "%s: Warning: truncating after writing %d frames\n", 
-		my_name, total_written);
-      }
-    }
-  }
+//    /* Interleaving for libsndfile. */
+//    float sf_output[nchannels * nframes];
+//    for (int i = 0; i < nframes; i++) {
+//      /* First, write all the obvious channels */
+//      for (int j = 0; j < min(outs, nchannels); j++) {
+//	/* If outs > nchannels, we *could* do mixing - but don't. */
+//	sf_output[i * nchannels + j] = pluginOutputBuffers[j][i];
+//      }
+//      /* Then, if user wants *more* output channels than there are
+//       * audio output ports (ie outs < nchannels), copy the last audio
+//       * out to all the remaining channels. If outs >= nchannels, this
+//       * loop is never entered. */
+//      for (int j = outs; j < nchannels; j++) {
+//	sf_output[i * nchannels + j] = pluginOutputBuffers[outs - 1][i];
+//      }
+//    }
+//
+//    if (clip) {
+//      for (int i = 0; i < nframes * nchannels; i++) {
+//	if (!finite(sf_output[i])) {
+//	  if (!have_warned) {
+//	    have_warned = 1;
+//	    fprintf(stderr, 
+//		    "%s: Warning: clipping NaN or Inf in synthesized data\n", 
+//		    my_name);
+//	  }
+//	  if (sf_output[i] < 0.0f) {
+//	    sf_output[i] = -1.0f;
+//	  } else {
+//	    sf_output[i] = 1.0f;
+//	  }
+//	} else {
+//	  if (sf_output[i] < -1.0f) {
+//	    if (!have_warned) {
+//	      have_warned = 1;
+//	      fprintf(stderr, 
+//		      "%s: Warning: clipping out-of-bounds value in synthesized data\n", 
+//		      my_name);
+//	    }
+//	    sf_output[i] = -1.0f;
+//	  } else if (sf_output[i] > 1.0f) {
+//	    if (!have_warned) {
+//	      have_warned = 1;
+//	      fprintf(stderr, 
+//		      "%s: Warning: clipping out-of-bounds value in synthesized data\n", 
+//		      my_name);
+//	    }
+//	    sf_output[i] = 1.0f;
+//	  }
+//	}
+//      }
+//    } else {
+//      for (int i = 0; i < nframes * nchannels; i++) {
+//	if (!finite(sf_output[i])) {
+//	  fprintf(stderr, "%s: Error: NaN or Inf in synthesized data\n",
+//		  my_name);
+//	  exit(1);
+//	}
+//	if (sf_output[i] > 1.0f
+//	    || sf_output[i] < -1.0f) {
+//	  fprintf(stderr, "%s: Error: sample data out of bounds\n",
+//		  my_name);
+//	  exit(1);
+//	}
+//      }
+//    }
+//
+//    /* Write the audio */
+//    if ((items_written = sf_writef_float(outfile, 
+//					 sf_output,
+//					nframes)) != nframes) {
+//      fprintf(stderr, "%s: Error: can't write data to output file %s\n", 
+//	      my_name, output_file);
+//      fprintf(stderr, "%s: %s\n", my_name, sf_strerror(outfile));
+//      return 1;
+//    }
+//    
+//    total_written += items_written;
+//    if (release_tail >= 0) {
+//      if (total_written > length + release_tail) {
+//	finished = 1;
+//      }
+//    } else {
+//      if (total_written > length 
+//	  && is_silent(sf_output, nframes * nchannels)) {
+//	finished = 1;
+//      } else if (total_written > MAX_LENGTH * sample_rate) {
+//	/* The default sineshaper patch never releases, after a note-off,
+//	 * to silence. So truncate. This is sineshaper 0.3.0 (so maybe it's 
+//	 * different in the new version) and here I mean the default
+//	 * patch as returned by the get_port_default() function, not the 
+//	 * default set by the sineshaper UI.
+//	 */
+//	finished = 1;
+//	fprintf(stderr, "%s: Warning: truncating after writing %d frames\n", 
+//		my_name, total_written);
+//      }
+//    }
+//  }
+//  }}}
+  ladspa_run_synth();  //so all of the logic is in the other file now? yes good
 
   fprintf(stdout, "%s: Wrote %d frames to %s\n", 
 	  my_name, total_written, output_file);
