@@ -1,4 +1,4 @@
-AC_INIT(src/cli-dssi-host.c)
+AC_INIT(src/DSSI-render.c)
 
 LT_INIT
 

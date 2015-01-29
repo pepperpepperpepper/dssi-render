@@ -1,11 +1,11 @@
 SUBDIRS = midi
 
-bin_PROGRAMS = cli-dssi-host
+bin_PROGRAMS = DSSI-render
 
 AM_CFLAGS = -Wall -std=c99 $(DSSI_CFLAGS) $(SNDFILE_CFLAGS) $(ALSA_CFLAGS)
 AM_LIBS = $(DSSI_LIBS) $(SNDFILE_LIBS) $(ALSA_LIBS)
 
-cli_dssi_host_SOURCES = cli-dssi-host.c cli-dssi-host.h ladspa_run_synth.c
-cli_dssi_host_LDADD = $(AM_LIBS) -lm -ldl midi/libfluidmidi.la
+DSSI_render_SOURCES = DSSI-render.c DSSI-render.h ladspa_run_synth.c
+DSSI_render_LDADD = $(AM_LIBS) -lm -ldl midi/libfluidmidi.la
 
 EXTRA_DIST = lts.prs

@@ -1,4 +1,4 @@
-#include "cli-dssi-host.h"
+#include "DSSI-render.h"
 #include "midi/midi_loader.h" 
 
   /* Instead of creating an alsa midi input, we fill in two events

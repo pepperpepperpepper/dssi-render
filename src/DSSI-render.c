@@ -1,4 +1,4 @@
-/* cli-dssi-host.c
+/*
  * Copyright (C) 2005 James McDermott
  * jamesmichaelmcdermott@gmail.com
  *
@@ -22,7 +22,7 @@
  */
 #define CLI_FUNCS
 
-#include "cli-dssi-host.h"
+#include "DSSI-render.h"
 #include "ladspa_run_synth.h"
 #include "midi/midi_loader.h" 
 
