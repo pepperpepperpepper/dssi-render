@@ -2,8 +2,8 @@ AC_INIT(src/DSSI-render.c)
 
 LT_INIT
 
-PACKAGE=cli-dssi-host
-VERSION=0.1.3
+PACKAGE=dssi-render
+VERSION=0.0.1
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 

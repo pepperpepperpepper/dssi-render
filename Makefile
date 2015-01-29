@@ -59,10 +59,10 @@ am__make_running_with_option = \
   test $$has_opt = yes
 am__make_dryrun = (target_option=n; $(am__make_running_with_option))
 am__make_keepgoing = (target_option=k; $(am__make_running_with_option))
-pkgdatadir = $(datadir)/cli-dssi-host
-pkgincludedir = $(includedir)/cli-dssi-host
-pkglibdir = $(libdir)/cli-dssi-host
-pkglibexecdir = $(libexecdir)/cli-dssi-host
+pkgdatadir = $(datadir)/dssi-render
+pkgincludedir = $(includedir)/dssi-render
+pkglibdir = $(libdir)/dssi-render
+pkglibexecdir = $(libexecdir)/dssi-render
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
 install_sh_PROGRAM = $(install_sh) -c
@@ -78,10 +78,10 @@ POST_UNINSTALL = :
 build_triplet = x86_64-unknown-linux-gnu
 host_triplet = x86_64-unknown-linux-gnu
 subdir = .
-DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
+DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog COPYING \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) mkinstalldirs \
-	COPYING compile config.guess config.sub install-sh missing \
+	compile config.guess config.sub depcomp install-sh missing \
 	ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -206,7 +206,7 @@ CFLAGS = -g -O2
 CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DPACKAGE=\"cli-dssi-host\" -DVERSION=\"0.1.3\"
+DEFS = -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DPACKAGE=\"dssi-render\" -DVERSION=\"0.0.1\"
 DEPDIR = .deps
 DLLTOOL = false
 DSSI_CFLAGS = 
@@ -243,7 +243,7 @@ OBJDUMP = objdump
 OBJEXT = o
 OTOOL = 
 OTOOL64 = 
-PACKAGE = cli-dssi-host
+PACKAGE = dssi-render
 PACKAGE_BUGREPORT = 
 PACKAGE_NAME = 
 PACKAGE_STRING = 
@@ -261,7 +261,7 @@ SHELL = /bin/sh
 SNDFILE_CFLAGS = 
 SNDFILE_LIBS = -lsndfile 
 STRIP = strip
-VERSION = 0.1.3
+VERSION = 0.0.1
 abs_builddir = /home/pepper/DSSI/dssi-render
 abs_srcdir = /home/pepper/DSSI/dssi-render
 abs_top_builddir = /home/pepper/DSSI/dssi-render
