@@ -1,6 +1,6 @@
 #define CLI_FUNCS
 
-#include "DSSI-render.h"
+#include "dssi-render.h"
 #include "ladspa_run_synth.h"
 #include "midi/midi_loader.h" 
 

@@ -1,4 +1,4 @@
-AC_INIT(src/DSSI-render.c)
+AC_INIT(src/dssi-render.c)
 
 LT_INIT
 

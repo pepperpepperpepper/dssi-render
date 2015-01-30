@@ -78,7 +78,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-unknown-linux-gnu
 host_triplet = x86_64-unknown-linux-gnu
-bin_PROGRAMS = DSSI-render$(EXEEXT)
+bin_PROGRAMS = dssi-render$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/mkinstalldirs $(top_srcdir)/depcomp
@@ -91,13 +91,13 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_DSSI_render_OBJECTS = DSSI-render.$(OBJEXT) \
+am_dssi_render_OBJECTS = dssi-render.$(OBJEXT) \
 	ladspa_run_synth.$(OBJEXT)
-DSSI_render_OBJECTS = $(am_DSSI_render_OBJECTS)
+dssi_render_OBJECTS = $(am_dssi_render_OBJECTS)
 am__DEPENDENCIES_1 =
 am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
-DSSI_render_DEPENDENCIES = $(am__DEPENDENCIES_2) midi/libfluidmidi.la
+dssi_render_DEPENDENCIES = $(am__DEPENDENCIES_2) midi/libfluidmidi.la
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
@@ -136,8 +136,8 @@ AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(DSSI_render_SOURCES)
-DIST_SOURCES = $(DSSI_render_SOURCES)
+SOURCES = $(dssi_render_SOURCES)
+DIST_SOURCES = $(dssi_render_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -205,15 +205,15 @@ am__relativize = \
     dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
   done; \
   reldir="$$dir2"
-ACLOCAL = ${SHELL} /home/pepper/DSSI/dssi-render/missing aclocal-1.14
+ACLOCAL = ${SHELL} /tmp/real/dssi-render/missing aclocal-1.14
 ALSA_CFLAGS = -I/usr/include/alsa 
 ALSA_LIBS = -lasound 
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AR = ar
-AUTOCONF = ${SHELL} /home/pepper/DSSI/dssi-render/missing autoconf
-AUTOHEADER = ${SHELL} /home/pepper/DSSI/dssi-render/missing autoheader
-AUTOMAKE = ${SHELL} /home/pepper/DSSI/dssi-render/missing automake-1.14
+AUTOCONF = ${SHELL} /tmp/real/dssi-render/missing autoconf
+AUTOHEADER = ${SHELL} /tmp/real/dssi-render/missing autoheader
+AUTOMAKE = ${SHELL} /tmp/real/dssi-render/missing automake-1.14
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -231,10 +231,10 @@ DUMPBIN =
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = /usr/bin/grep -E
+EGREP = /bin/grep -E
 EXEEXT = 
-FGREP = /usr/bin/grep -F
-GREP = /usr/bin/grep
+FGREP = /bin/grep -F
+GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -248,10 +248,9 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
-LT_SYS_LIBRARY_PATH = 
-MAKEINFO = ${SHELL} /home/pepper/DSSI/dssi-render/missing makeinfo
+MAKEINFO = ${SHELL} /tmp/real/dssi-render/missing makeinfo
 MANIFEST_TOOL = :
-MKDIR_P = /usr/bin/mkdir -p
+MKDIR_P = /bin/mkdir -p
 NM = /usr/bin/nm -B
 NMEDIT = 
 OBJDUMP = objdump
@@ -270,17 +269,17 @@ PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
 RANLIB = ranlib
-SED = /usr/bin/sed
+SED = /bin/sed
 SET_MAKE = 
-SHELL = /bin/sh
+SHELL = /bin/bash
 SNDFILE_CFLAGS = 
 SNDFILE_LIBS = -lsndfile 
 STRIP = strip
 VERSION = 0.0.1
-abs_builddir = /home/pepper/DSSI/dssi-render/src
-abs_srcdir = /home/pepper/DSSI/dssi-render/src
-abs_top_builddir = /home/pepper/DSSI/dssi-render
-abs_top_srcdir = /home/pepper/DSSI/dssi-render
+abs_builddir = /tmp/real/dssi-render/src
+abs_srcdir = /tmp/real/dssi-render/src
+abs_top_builddir = /tmp/real/dssi-render
+abs_top_srcdir = /tmp/real/dssi-render
 ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_DUMPBIN = 
@@ -309,7 +308,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/pepper/DSSI/dssi-render/install-sh
+install_sh = ${SHELL} /tmp/real/dssi-render/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -332,8 +331,8 @@ top_srcdir = ..
 SUBDIRS = midi
 AM_CFLAGS = -Wall -std=c99 $(DSSI_CFLAGS) $(SNDFILE_CFLAGS) $(ALSA_CFLAGS)
 AM_LIBS = $(DSSI_LIBS) $(SNDFILE_LIBS) $(ALSA_LIBS)
-DSSI_render_SOURCES = DSSI-render.c DSSI-render.h ladspa_run_synth.c
-DSSI_render_LDADD = $(AM_LIBS) -lm -ldl midi/libfluidmidi.la
+dssi_render_SOURCES = dssi-render.c dssi-render.h ladspa_run_synth.c
+dssi_render_LDADD = $(AM_LIBS) -lm -ldl midi/libfluidmidi.la
 EXTRA_DIST = lts.prs
 all: all-recursive
 
@@ -419,9 +418,9 @@ clean-binPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-DSSI-render$(EXEEXT): $(DSSI_render_OBJECTS) $(DSSI_render_DEPENDENCIES) $(EXTRA_DSSI_render_DEPENDENCIES) 
-	@rm -f DSSI-render$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(DSSI_render_OBJECTS) $(DSSI_render_LDADD) $(LIBS)
+dssi-render$(EXEEXT): $(dssi_render_OBJECTS) $(dssi_render_DEPENDENCIES) $(EXTRA_dssi_render_DEPENDENCIES) 
+	@rm -f dssi-render$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(dssi_render_OBJECTS) $(dssi_render_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -429,7 +428,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/DSSI-render.Po
+include ./$(DEPDIR)/dssi-render.Po
 include ./$(DEPDIR)/ladspa_run_synth.Po
 
 .c.o:
