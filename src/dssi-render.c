@@ -7,6 +7,11 @@
 #define SAMPLE_RATE 44100
 #define DEBUG 1
 
+
+#define FILE_OK 0x0
+#define WRITE_OK 0x2
+
+
 void
 print_usage(void) {
   fprintf(stderr, "Render a midi file with a DSSI instrument.\n");
@@ -19,18 +24,13 @@ print_usage(void) {
   fprintf(stderr, "  [-i <midifile.mid>] (default == \"test.mid\")\n");
   fprintf(stderr, "  [-o <output_file.wav>] (default == \"output.wav\")\n");
   fprintf(stderr, "  [-c <no_channels>] (default == 1; use -c -1 to use plugin's channel count)\n");
+  fprintf(stderr, "  [-r <sample_rate>] (default == 44100)\n");
   fprintf(stderr, "  [-d <project_directory>]\n");
   fprintf(stderr, "  [-k <configure_key>%c<value>] ...\n", KEYVAL_SEP);
   fprintf(stderr, "  [-b] (clip out-of-bounds values, including Inf and NaN, to within bounds\n       (calls exit()) if -b is omitted)\n");
   exit(1);
 }
 
-int file_exist (char *filename)
-{
-  struct stat   buffer;   
-  return (stat (filename, &buffer) == 0);
-}
-  
 const DSSI_Descriptor *descriptor;
 LADSPA_Handle instanceHandle;
 SNDFILE *outfile;
@@ -109,9 +109,9 @@ int
 main(int argc, char **argv) {
 
   my_name = basename(argv[0]);
-
-  sample_rate = SAMPLE_RATE;
   
+  sample_rate = SAMPLE_RATE;
+
   /* Probably an unorthodox srandom() technique... */
   struct timeval tv;
   struct timezone tz;
@@ -142,6 +142,8 @@ main(int argc, char **argv) {
 
     if (!strcmp(argv[i], "-c")) {
       nchannels = strtol(argv[++i], NULL, 0);
+    } else if (!strcmp(argv[i], "-r")) {
+      sample_rate = strtof(argv[++i], NULL);
     } else if (!strcmp(argv[i], "-o")) {
       output_file = argv[++i];
     } else if (!strcmp(argv[i], "-i")) {
@@ -181,12 +183,12 @@ main(int argc, char **argv) {
   }
 
   //make sure input and output exist
-  if(!file_exist(midi_filename)){
+  if(access(midi_filename, FILE_OK)){
     fprintf(stderr, "ERROR:Could not find %s\n Please specify an input file with -i\n", midi_filename);
     exit(1);
   }
-  if(!file_exist(output_file)){
-    fprintf(stderr, "ERROR:Could not find %s\n Please specify an output file with -o\n", output_file);
+  if(!access(output_file, WRITE_OK)){
+    fprintf(stderr, "ERROR:Could not write to %s\n.", output_file);
     exit(1);
   }
 
