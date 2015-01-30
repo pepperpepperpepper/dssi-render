@@ -4,6 +4,8 @@
 #include "ladspa_run_synth.h"
 #include "midi/midi_loader.h" 
 
+#define DEBUG 1
+
 void
 print_usage(void) {
   fprintf(stderr, "Render a midi file with a DSSI instrument.\n");
@@ -21,11 +23,17 @@ print_usage(void) {
   fprintf(stderr, "  [-b] (clip out-of-bounds values, including Inf and NaN, to within bounds\n       (calls exit()) if -b is omitted)\n");
   exit(1);
 }
+
+int file_exist (char *filename)
+{
+  struct stat   buffer;   
+  return (stat (filename, &buffer) == 0);
+}
   
 const DSSI_Descriptor *descriptor;
 LADSPA_Handle instanceHandle;
 SNDFILE *outfile;
-char *output_file = "output.wav";
+char *output_file = "output.wav"; //ask anton...needs malloc?
 char *midi_filename = "test.mid";
   int clip = 0;
   int have_warned = 0;
@@ -169,6 +177,16 @@ main(int argc, char **argv) {
       fprintf(stderr, "%s: Error: Unknown option: %s\n", my_name, argv[i]);
       print_usage();
     }
+  }
+
+  //make sure input and output exist
+  if(!file_exist(midi_filename)){
+    fprintf(stderr, "ERROR:Could not find %s\n Please specify an input file with -i\n", midi_filename);
+    exit(1);
+  }
+  if(!file_exist(output_file)){
+    fprintf(stderr, "ERROR:Could not find %s\n Please specify an output file with -o\n", output_file);
+    exit(1);
   }
 
   if (DEBUG) {
@@ -357,8 +375,7 @@ main(int argc, char **argv) {
 	pluginControlIns[controlIn] = def;
       }
       if (DEBUG) {
-	fprintf(stderr, 
-		"port %3d; prhd %3d; lb %6.2f; ub %6.2f; val %6.2f (%s)\n",
+	fprintf(stderr, "port %3d; prhd %3d; lb %6.2f; ub %6.2f; val %6.2f (%s)\n",
 		j, prhd, lb, ub, val, pname);
       }
       controlIn++;
@@ -394,6 +411,7 @@ main(int argc, char **argv) {
 		"%s: Warning: plugin doesn't like "
 		"configure key-value pair: \"%s\"\n", 
 		my_name, rv);
+    exit(1);
       }
     }
   }

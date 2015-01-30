@@ -1,5 +1,5 @@
 #include "midi_loader.h"  
-
+#define DEBUG 0
 event_table_t *event_table;
 
 int
@@ -7,26 +7,6 @@ fluid_log(int level, const char* fmt, ...)
 {
 
 }
-//{{{OLD
-//fluid_midi_event_t *
-//new_fluid_midi_event ()
-//{
-//    fluid_midi_event_t* evt; //oh it's just the name
-//    evt = FLUID_NEW(fluid_midi_event_t);
-//    if (evt == NULL) {
-//        FLUID_LOG(FLUID_ERR, "Out of memory");
-//        return NULL;
-//    }
-//    evt->dtime = 0;
-//    evt->type = 0;
-//    evt->channel = 0;
-//    evt->param1 = 0;
-//    evt->param2 = 0;
-//    evt->next = NULL; //so this looks like it's set up to be a linked list, right? each event contains pointer to the next yes
-//    evt->paramptr = NULL;
-//    return evt;
-//}
-//}}}
 
 void insert_event(event_table_t *event_table, snd_seq_event_t *event){
   event_table->events = realloc(event_table->events, (event_table->length + 1) * sizeof(snd_seq_event_t));
@@ -37,7 +17,9 @@ void delete_event(event_table_t *event_table, snd_seq_event_t *event){
   size_t i;
   for (i=0; i< event_table->length; i++){
     if(compare_events(&event_table->events[i], event)){ 
- printf("removed_event\n");
+      if (DEBUG){
+        printf("removed_event\n");
+      }
       memcpy(&event_table->events[i], &event_table->events[i+1], sizeof(snd_seq_event_t)*(event_table->length - i -1));
       event_table->events = realloc(event_table->events, event_table->length * sizeof(snd_seq_event_t));
       event_table->length--;
@@ -49,7 +31,9 @@ void delete_note_off_events(event_table_t *event_table){
   size_t i;
   for (i=0; i< event_table->length; i++){
     if(event_table->events[i].type == SND_SEQ_EVENT_NOTEOFF){ 
- printf("removed_note_off_event\n");
+      if(DEBUG){
+        printf("removed_note_off_event\n");
+      }
       memcpy(&event_table->events[i], &event_table->events[i+1], sizeof(snd_seq_event_t)*(event_table->length - i -1));
       event_table->events = realloc(event_table->events, event_table->length * sizeof(snd_seq_event_t));
       event_table->length--;
@@ -70,28 +54,14 @@ void replace_events(event_table_t *event_table, snd_seq_event_t *event){
   size_t i;
   for (i=0; i< event_table->length; i++){
     if(compare_events(&event_table->events[i], event)){ 
- printf("replaced_event\n");
+      if (DEBUG){
+        printf("replaced_event\n");
+      }
       memcpy(&event_table->events[i], event, sizeof(snd_seq_event_t)); 
     }
   }
 }
 
-//{{{ type conversion stuff
-//struct _fluid_midi_event_t {
-//  fluid_midi_event_t* next; /* Link to next event */ 
-//  void *paramptr;           /* Pointer parameter (for SYSEX data), size is stored to param1, param2 indicates if pointer should be freed (dynamic if TRUE) */
-//  unsigned int dtime;       /* Delay (ticks) between this and previous event. midi tracks. */
-//  unsigned int param1;      /* First parameter */ DONE
-//  unsigned int param2;      /* Second parameter */ DONE
-//  unsigned char type;       /* MIDI event type */ DONE
-//  unsigned char channel;    /* MIDI channel */ DONE
-//};
-//  on_event.type = SND_SEQ_EVENT_NOTEON;
-//  on_event.data.note.channel = 0; // this one  oh ok, so we save this data, and don't worry about it until we get to run_synth? looks so ok perfect
-//  on_event.data.note.note = midi_note;
-//  on_event.data.note.velocity = midi_velocity;
-//  on_event.time.tick = 0;
-//  }}}
 void convert_event_format(fluid_midi_event_t *from, snd_seq_event_t *to){
   memset(to, 0, sizeof(snd_seq_event_t));
 //{{{ from->type
@@ -185,16 +155,19 @@ void print_snd_seq_event(snd_seq_event_t *event){
       break;
     break;
   }
-  printf("event_type: %s", note_event);
-  printf("channel: %d ", event->data.note.channel);
-  printf("note: %d ", event->data.note.note);
-  printf("velocity: %d ", event->data.note.velocity);
-  printf("tick: %d ", event->time.tick);
-  printf("\n");
+  if (DEBUG){
+    printf("event_type: %s", note_event);
+    printf("channel: %d ", event->data.note.channel);
+    printf("note: %d ", event->data.note.note);
+    printf("velocity: %d ", event->data.note.velocity);
+    printf("tick: %d ", event->time.tick);
+    printf("\n");
+  }
 }
 
 
 void print_event_table (event_table_t *event_table){
+  
   unsigned int i;
   for(i=0; i< event_table->length; i++){ 
     printf(" - %d: ", i + 1);
@@ -242,25 +215,12 @@ int get_events(void *data, fluid_midi_event_t *event){
       break;
   }
   
-  printf("event table last nframe: %u\n", event_table->last_nframe);
-  printf("run_synth(instancehandle, %u,\n", event_table->nframes_since_last);
-  print_event_table(event_table);  
-  printf(", %u)\n", event_table->length);
-  
-
-  /* 
-   flow
-     call 1:
-       - note_on
-       insert_note()
-     call 2:
-       cb()
-       - note_off
-       replace_events() note_on in table is now note_off
-     call 3:
-       cb()
-       delete_note_off_events()
-  */
+  if (DEBUG){
+    printf("event table last nframe: %u\n", event_table->last_nframe);
+    printf("run_synth(instancehandle, %u,\n", event_table->nframes_since_last);
+    print_event_table(event_table);  
+    printf(", %u)\n", event_table->length);
+  }
 }
 
 

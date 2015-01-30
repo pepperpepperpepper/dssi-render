@@ -31,7 +31,6 @@
 #define _ISOC99_SOURCE 1
 
 
-#define DEBUG 0
 #define MAX_LENGTH (15.0f)
 #define SAMPLE_RATE 44100
 /* character used to separate SO names from plugin labels on command line */
