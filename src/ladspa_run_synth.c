@@ -137,6 +137,8 @@ print_snd_seq_event(event_table->events);
       fprintf(stderr, "%s: %s\n", my_name, sf_strerror(outfile));
       return;
     }
+  fprintf(stdout, "%s: Wrote %d frames to %s\n", 
+	  my_name, items_written, output_file);
     
 /*    total_written += items_written;
     if (release_tail >= 0) {
