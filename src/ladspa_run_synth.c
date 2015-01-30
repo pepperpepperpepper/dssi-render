@@ -7,12 +7,17 @@ inline int
 min(int x, int y) {
   return (x < y) ? x : y;
 }
+// where is nframes defined?
 
 void ladspa_run_sample_callback(event_table_t *event_table, void *userdata){
   nframes = event_table->nframes_since_last;
   nframes = nframes > 0 ? nframes : 1;
+//is it nframes that has the negative value? or event_table length? well they are both size_t, can't be negative. i guess need to add prints to see what's going on
+  printf("nframes: 0x%x\n", nframes);
+  printf("outs: 0x%x\n", outs);
   for (int i = 0; i < outs; i++) {
     pluginOutputBuffers[i] = (float *)realloc(pluginOutputBuffers[i], nframes * sizeof(float)); 
+    printf("i: 0x%x buff: 0x%x\n", i, pluginOutputBuffers[i]);
     memset(pluginOutputBuffers[i], 0, nframes * sizeof(float));
 }
   connect_ports();
@@ -47,7 +52,6 @@ void ladspa_run_sample_callback(event_table_t *event_table, void *userdata){
 	sf_output[i * nchannels + j] = pluginOutputBuffers[outs - 1][i];
       }
     }
-//clip = 1;  // FIXME
     if (clip) {
       for (int i = 0; i < nframes * nchannels; i++) {
 	if (!finite(sf_output[i])) {
@@ -112,7 +116,8 @@ void ladspa_run_sample_callback(event_table_t *event_table, void *userdata){
     
 }
 
+
 void ladspa_run_synth(void){
-  load_midi_file(midi_filename, ladspa_run_sample_callback, NULL);
+  load_midi_file(midi_filename, sample_rate, ladspa_run_sample_callback, NULL);
 }
 

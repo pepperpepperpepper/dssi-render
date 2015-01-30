@@ -1,5 +1,3 @@
-//it's most likely defined in one of alsa libs, just copy headers include from here to get it. right but it's 
-//a pointer right? it's a structure. do we need to know what's in it? yes we need to fill it porperly for run_synth
 /* cli-dssi-host.h
  * Copyright (C) 2005 James McDermott
  * jamesmichaelmcdermott@gmail.com
@@ -32,7 +30,6 @@
 
 
 #define MAX_LENGTH (15.0f)
-#define SAMPLE_RATE 44100
 /* character used to separate SO names from plugin labels on command line */
 #define LABEL_SEP ':'
 #define KEYVAL_SEP '='
@@ -65,6 +62,8 @@
 
 
 
+
+extern float sample_rate;
 extern   char *midi_filename;
 extern const DSSI_Descriptor *descriptor;
 extern LADSPA_Handle instanceHandle;
@@ -102,8 +101,8 @@ extern float *pluginControlOuts;
 //awesome, worked, right? yeah
 //so what is extern doing? basically it says that there is a variable, but doesn't allocate it by itself, so same varable can be shared between two code from different object files. and are extern definitions like this usually kept in the header files? yes ok
 char *my_name;
-#ifdef CLI_FUNCS 
-static float sample_rate;
+#ifdef CLI_FUNCS
+float sample_rate; 
 static int verbose = 0;
 
 LADSPA_Data get_port_random(const LADSPA_Descriptor *plugin, int port)

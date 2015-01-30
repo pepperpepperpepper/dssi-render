@@ -1,5 +1,5 @@
 #include "midi_loader.h"  
-#define DEBUG 0
+#define DEBUG 1
 event_table_t *event_table;
 
 int
@@ -186,22 +186,25 @@ int get_events(void *data, fluid_midi_event_t *event){
   fluid_track_t *track = ctx->track;
   snd_seq_event_t seq_event; 
 
-  size_t last_nframe = event_table->last_nframe;
-  event_table->last_nframe = (player->deltatime * track->ticks) * 44100 / 1000; // FIXME 44100 to ctx->samplerate
-  event_table->nframes_since_last = event_table->last_nframe - last_nframe;
+  size_t last_tick = event_table->last_tick;
+  size_t tick_current = track->ticks; // (player->deltatime * track->ticks) / 1000 * 44100;
+  if (last_tick > tick_current){
+    if (DEBUG){
+      printf("SKIPPING EVENT, event out of order in midi file. Last: %d, current tick: %d\n", last_tick, track->ticks); 
+    }// nope, doesn't trigger if ticks is same any way we can print that tick number and compare it with the file? sure
+    return 0; 
+  } 
+  event_table->last_tick = tick_current;// FIXME 44100 to ctx->samplerate oh yeah this needs to be passed in
+  event_table->ticks_since_last = event_table->last_tick - last_tick;
+  event_table->nframes_since_last = event_table->ticks_since_last * player->deltatime * ctx->sample_rate / 1000; 
 
   convert_event_format(event, &seq_event);
-  //print_snd_seq_event(&seq_event);
   
   read_midi_callback cb = ctx->callback;
   if(cb){
-    //size_t i;
-  //  for(i = 0; i < event_table->nframes_since_last / 256; i++){ // FIXME //it could be something weird somewhere in this script though, right? 
-//some part that we haven't been looking at at all... well yeah, i think of setting this to run whole nframes, and compiling hexter with debug symbols to check it again in valgrind. what is segfaulting...we don't know which part, right? yeah could it be something like an old printf statement somewhere in the code from cli-dssi-host? hm it actually can be code from cli-dssi which is initalizing plugin for only 256 frames and we are trying to run more inside.. yeah that seems right it saves it in "descriptor" right? yeah some buffer there
       cb(event_table, ctx->callback_userdata);
     //}
   }
- // so i fixed logic a bit, should work now oh ok I have the new file 
   delete_note_off_events(event_table);  
 
   switch(event->type){ 
@@ -226,7 +229,7 @@ int get_events(void *data, fluid_midi_event_t *event){
 
 
 
-void load_midi_file(char *filename, read_midi_callback callback, void *callback_userdata){  //like that?
+void load_midi_file(char *filename, float sample_rate, read_midi_callback callback, void *callback_userdata){  //like that?
   int i;
   fluid_player_t *player;
   fluid_playlist_item playlist_item;
@@ -237,129 +240,24 @@ void load_midi_file(char *filename, read_midi_callback callback, void *callback_
   event_table->length = 0;
   event_table->last_nframe = 0; 
   event_table->nframes_since_last = 0;
-//where is this calculated? 
+  event_table->last_tick = 0; 
+  event_table->ticks_since_last = 0;
   playlist_item.filename = filename;
- // 
- // so the only arg to the callback is ctx, right? yes
- // player = (fluid_player_t *)new_fluid_player();
+
   player = (fluid_player_t *)new_fluid_player();
-  player->playback_callback = &get_events; //how do I pass it to the callback? no way to do that, we can only pass one variable as "data"
-  player->playback_userdata = (void *)&ctx; // here. so i guess need to make a structure and put player, track pointers into it.
+  player->playback_callback = &get_events;
+
+  player->playback_userdata = (void *)&ctx;
   ctx.player = player;
   ctx.callback = callback;
   ctx.callback_userdata = callback_userdata;
+  ctx.sample_rate = sample_rate;
   fluid_player_load(player, &playlist_item);
 
-//
-//
   for(i = 0; i < player->ntracks; i++){
-     ctx.track = player->track[i];// here. so i guess need to make a structure and put player, track pointers into it.
+     ctx.track = player->track[i];
      fluid_track_send_events(player->track[i], player->synth, player, (unsigned int)-1);
   }
 
   delete_fluid_player(player);
 }
-//
-//should I grab the run_synth call from the other program just so that we know what it requires? yep
-//
-// something like this, need to fix it a bit ok I'll load example.mid, should we try it before taking a break from this? well it won't compile i think, get_events should be consistent with callback prototype
-//
-//EXPLANATION:
-//LADSPA_Handle instanceHandle;
-//instanceHandle = descriptor->LADSPA_Plugin->instantiate
-//
-//
-//
-//int nframes (number of frames)
-
-//  current_event is pointer to on/off event
-//  snd_seq_event_t on_event, off_event, *current_event;
-//  on_event.type = SND_SEQ_EVENT_NOTEON;
-//  on_event.data.note.channel = 0; // this one  oh ok, so we save this data, and don't worry about it until we get to run_synth? looks so ok perfect
-//  on_event.data.note.note = midi_note;
-//  on_event.data.note.velocity = midi_velocity;
-//  on_event.time.tick = 0;
-//
-//  off_event.type = SND_SEQ_EVENT_NOTEOFF;
-//  off_event.data.note.channel = 0;
-//  off_event.data.note.note = midi_note;
-//  off_event.data.note.off_velocity = midi_velocity; // yeah off_velocity instead
-//  off_event.time.tick = 0;
-
-
-//weird, negative numbers type problem...is it because we need to print as %u? or something similar? might be  
-//ok so it's the event table that we pass in, right? yes
-//      descriptor->run_synth(instanceHandle, //instance handle is taken care of for us, current_event is our event_table, right? event_table->events
-//			    player->msec,  //like this? not really
-//			    event_table->events,
-//			    event_table->length);
-//
-//			    so with nfraes, we need to track how many samples we should generate from last get_events call. so it should be something like:
-// ok something like this wow, ok, do we need print this now too, or should we try hooking it up? let's print it first
-
-//only thing is, I'm not sure what they mean by start of the block, do they mean start of the track? not sure, i guess to start of events we send to plugin one more time to check this note_on\off
-//     * The Events pointer points to a block of EventCount ALSA
-//     * sequencer events, which is used to communicate MIDI and related
-//     * events to the synth.  Each event is timestamped relative to the
-//     * start of the block, (mis)using the ALSA "tick time" field as a
-//     * frame count. The host is responsible for ensuring that events
-//     * with differing timestamps are already ordered by time.
-  //FIXME msec
-  /*printf("track=%02d msec=%05d ticks=%05u dtime=%05u next=%05u type=Ox%x\n", 
-         track->num, 
-         track->ticks * player->deltatime,
-         track->ticks, 
-         event->dtime, 
-         track->ticks + event->dtime,
-//ok so do we still have an issue with the ticks calculation? yeah but anyway there is something weird with note generation, if i put event on_event from original code, there is something in output file, if i put our events it's silence
-         event->type); */
-//{{{    mrswatson time calculation
-//    case TIME_DIVISION_TYPE_TICKS_PER_BEAT: {
-//            double ticksPerSecond = (double)timeDivision * getTempo() / 60.0;
-//            double sampleFramesPerTick = getSampleRate() / ticksPerSecond;
-//            currentTimeInSampleFrames += (long)(unpackedVariableLength * sampleFramesPerTick); //so do we need the same calculation, currentTimeinFrames? or do we need deltaframes? what are the units we need exactly? basically need timestamp in msec for each event
-//        }
-//}}}
-
-/*
-
-get_events original
-int get_events(void *data, fluid_midi_event_t *event){
-  read_midi_ctx_t *ctx = (read_midi_ctx_t *)data;
-  fluid_player_t *player = ctx->player;
-  fluid_track_t *track = ctx->track;
-  snd_seq_event_t seq_event; 
-
-  size_t last_nframe = event_table->last_nframe;
-  event_table->last_nframe = (player->deltatime * track->ticks) * 44100 / 1000; // FIXME 44100 to ctx->samplerate
-  event_table->nframes_since_last = event_table->last_nframe - last_nframe;
-
-  
-  convert_event_format(event, &seq_event);
-  print_snd_seq_event(&seq_event);
-
-  read_midi_callback cb = ctx->callback;
-  if(cb){
-    size_t i;
-    for(i = 0; i < event_table->nframes_since_last; i++){
-      cb(event_table, ctx->callback_userdata);
-    }
-  }
-
-  switch(event->type){ 
-    case NOTE_ON:
-      insert_event(event_table, &seq_event); 
-      break;
-    case NOTE_OFF:
-      delete_event(event_table, &seq_event);
-      break;
-    default:
-      break;
-  }
-  printf("event table last nframe: %u\n", event_table->last_nframe);
-  printf("run_synth(instancehandle, %u,\n", event_table->nframes_since_last);
-  print_event_table(event_table);  
-  printf(", %u)\n", event_table->length);
-
-}
-*/

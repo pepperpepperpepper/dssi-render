@@ -4,6 +4,7 @@
 #include "ladspa_run_synth.h"
 #include "midi/midi_loader.h" 
 
+#define SAMPLE_RATE 44100
 #define DEBUG 1
 
 void
@@ -63,7 +64,7 @@ DSSI_Descriptor_Function descfn;
 
   size_t length = SAMPLE_RATE;
   size_t release_tail = -1;
-  size_t nframes = 256;
+  size_t nframes = 256; //here I guess? yeah ok
   size_t items_written = 0;
   
   float **pluginInputBuffers, **pluginOutputBuffers;

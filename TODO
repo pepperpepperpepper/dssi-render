@@ -1,0 +1,3 @@
+pass in sample rate from command line args 
+take out test for outfile
+test presets

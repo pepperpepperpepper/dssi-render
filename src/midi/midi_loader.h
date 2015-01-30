@@ -16,6 +16,8 @@ typedef struct event_table_t{
     size_t length;
     size_t last_nframe;
     size_t nframes_since_last;
+    size_t last_tick;
+    size_t ticks_since_last;
 } event_table_t;
 
 typedef void(*read_midi_callback)(event_table_t *event_table, void *userdata);
@@ -27,6 +29,7 @@ typedef struct read_midi_ctx_t {
     fluid_track_t   *track;
     read_midi_callback callback;
     void            *callback_userdata;
+    size_t sample_rate;
 } read_midi_ctx_t;
 
 
@@ -41,5 +44,5 @@ typedef struct read_midi_ctx_t {
 //int get_events(void *data, fluid_midi_event_t *event);
 
 void print_snd_seq_event(snd_seq_event_t *event);
-void load_midi_file(char *filename, read_midi_callback callback, void *callback_userdata);
+void load_midi_file(char *filename, float sample_rate, read_midi_callback callback, void *callback_userdata);
 #endif
