@@ -9,22 +9,10 @@ min(int x, int y) {
 }
 
 void ladspa_run_sample_callback(event_table_t *event_table, void *userdata){
-  snd_seq_event_t on_event, off_event, *current_event;
-  on_event.type = SND_SEQ_EVENT_NOTEON;
-  on_event.data.note.channel = 0;
-  on_event.data.note.note = 2 ;//midi_note;
-  on_event.data.note.velocity = 64;// midi_velocity;
-  on_event.time.tick = 0;
-
-  off_event.type = SND_SEQ_EVENT_NOTEOFF;
-  off_event.data.note.channel = 0;
-  off_event.data.note.note = midi_note;
-  off_event.data.note.off_velocity = midi_velocity;
-  off_event.time.tick = 0;
   nframes = event_table->nframes_since_last;
   nframes = nframes > 0 ? nframes : 1;
   for (int i = 0; i < outs; i++) {
-    pluginOutputBuffers[i] = (float *)realloc(pluginOutputBuffers[i], nframes * sizeof(float)); // yeah here it is, small buffer also nframes is a size_t, that would limit it? or not really not really ok so that can get pretty big? ye2^32
+    pluginOutputBuffers[i] = (float *)realloc(pluginOutputBuffers[i], nframes * sizeof(float)); 
     memset(pluginOutputBuffers[i], 0, nframes * sizeof(float));
 }
   connect_ports();
