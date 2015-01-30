@@ -1,5 +1,4 @@
 AC_INIT(src/dssi-render.c)
-AC_CONFIG_MACRO_DIRS([m4])
 
 LT_INIT
 

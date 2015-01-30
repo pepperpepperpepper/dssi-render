@@ -1,0 +1,5 @@
+libtoolize -f
+autoreconf
+./configure 
+make
+make install

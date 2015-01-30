@@ -81,8 +81,8 @@ subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) mkinstalldirs \
-	COPYING compile config.guess config.sub install-sh missing \
-	ltmain.sh
+	COPYING compile config.guess config.sub depcomp install-sh \
+	missing ltmain.sh
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -190,15 +190,15 @@ distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /tmp/newest/dssi-render/missing aclocal-1.14
+ACLOCAL = ${SHELL} /tmp/new/dssi-render/missing aclocal-1.14
 ALSA_CFLAGS = -I/usr/include/alsa 
 ALSA_LIBS = -lasound 
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AR = ar
-AUTOCONF = ${SHELL} /tmp/newest/dssi-render/missing autoconf
-AUTOHEADER = ${SHELL} /tmp/newest/dssi-render/missing autoheader
-AUTOMAKE = ${SHELL} /tmp/newest/dssi-render/missing automake-1.14
+AUTOCONF = ${SHELL} /tmp/new/dssi-render/missing autoconf
+AUTOHEADER = ${SHELL} /tmp/new/dssi-render/missing autoheader
+AUTOMAKE = ${SHELL} /tmp/new/dssi-render/missing automake-1.14
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -216,10 +216,10 @@ DUMPBIN =
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = /usr/bin/grep -E
+EGREP = /bin/grep -E
 EXEEXT = 
-FGREP = /usr/bin/grep -F
-GREP = /usr/bin/grep
+FGREP = /bin/grep -F
+GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -233,10 +233,9 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
-LT_SYS_LIBRARY_PATH = 
-MAKEINFO = ${SHELL} /tmp/newest/dssi-render/missing makeinfo
+MAKEINFO = ${SHELL} /tmp/new/dssi-render/missing makeinfo
 MANIFEST_TOOL = :
-MKDIR_P = /usr/bin/mkdir -p
+MKDIR_P = /bin/mkdir -p
 NM = /usr/bin/nm -B
 NMEDIT = 
 OBJDUMP = objdump
@@ -255,17 +254,17 @@ PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
 RANLIB = ranlib
-SED = /usr/bin/sed
+SED = /bin/sed
 SET_MAKE = 
-SHELL = /bin/sh
+SHELL = /bin/bash
 SNDFILE_CFLAGS = 
 SNDFILE_LIBS = -lsndfile 
 STRIP = strip
 VERSION = 0.0.1
-abs_builddir = /tmp/newest/dssi-render
-abs_srcdir = /tmp/newest/dssi-render
-abs_top_builddir = /tmp/newest/dssi-render
-abs_top_srcdir = /tmp/newest/dssi-render
+abs_builddir = /tmp/new/dssi-render
+abs_srcdir = /tmp/new/dssi-render
+abs_top_builddir = /tmp/new/dssi-render
+abs_top_srcdir = /tmp/new/dssi-render
 ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_DUMPBIN = 
@@ -294,7 +293,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /tmp/newest/dssi-render/install-sh
+install_sh = ${SHELL} /tmp/new/dssi-render/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -315,7 +314,6 @@ top_build_prefix =
 top_builddir = .
 top_srcdir = .
 SUBDIRS = src
-ACLOCAL_AMFLAGS = "-I m4"
 all: all-recursive
 
 .SUFFIXES:
