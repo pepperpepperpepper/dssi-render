@@ -1,0 +1,8 @@
+plugin reads port values from stdin
+so just write the decimals one by line and pipe them in to load.
+only listens on the input ports, so one line per port
+to examine avalailable plugins on the system:
+dssi_list_plugins
+
+to examine a plugin and see its ports:
+dssi_analyze_plugin [plugin.uri]

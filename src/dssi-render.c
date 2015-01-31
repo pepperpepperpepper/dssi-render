@@ -163,8 +163,11 @@ main(int argc, char **argv) {
       char *second_str;
       parse_keyval(argv[++i], BANK_SEP, &first_str, &second_str);
       if (second_str) {
+//check what happens to bank and program_no
 	bank = strtol(first_str, NULL, 0);
 	program_no = strtol(second_str, NULL, 0);
+      printf("bank: %d\n", bank);
+      printf("program_no: %d\n", program_no);
       } else {
 	program_no = strtol(first_str, NULL, 0);
 	bank = 0;
@@ -174,6 +177,7 @@ main(int argc, char **argv) {
       } else if (program_no == -2) {
 	src = from_random;
       } else {
+//all endpoints go here
 	src = from_preset;
       }
     } else {
@@ -309,10 +313,13 @@ main(int argc, char **argv) {
   connect_ports();
 
   /* Set the control port values */
+  printf("PORT COUNT: %d", descriptor->LADSPA_Plugin->PortCount);
 
+  //FIXME change logic here
   if (src == from_preset) {
     /* Set the ports according to a preset */
     if (descriptor->select_program) {
+      //select program...
       descriptor->select_program(instanceHandle, bank, program_no);
     }
   } else {
@@ -321,20 +328,26 @@ main(int argc, char **argv) {
     for (int j = 0; j < descriptor->LADSPA_Plugin->PortCount; j++) {  
       /* j is LADSPA port number */
       
-      LADSPA_PortDescriptor pod =
-	descriptor->LADSPA_Plugin->PortDescriptors[j];
-      
+      //PortDescriptors are ints whose hex values determine whether the port is an input port, an output port, etc
+      //so here we go through all the descriptors...
+      LADSPA_PortDescriptor pod = descriptor->LADSPA_Plugin->PortDescriptors[j];
+
+      //if the descriptor is a control port and an input port...      
       if (LADSPA_IS_PORT_CONTROL(pod) && LADSPA_IS_PORT_INPUT(pod)) {
-	LADSPA_Data val;
-	if (src == from_defaults) {
-	  val = get_port_default(descriptor->LADSPA_Plugin, j);
-	} else if (src == from_stdin) {
-	  scanf("%f", &val);
-	} else if (src == from_random) {
-	  val = get_port_random(descriptor->LADSPA_Plugin, j);
-	}
-	pluginControlIns[controlIn] = val;
-	controlIn++;
+        LADSPA_Data val; //this is a float...the value to assign to that port 
+        if (src == from_defaults) {
+          //get the default value for that port
+          val = get_port_default(descriptor->LADSPA_Plugin, j);
+        } else if (src == from_stdin) {
+          //not sure how this works, but get a value from stdin I guess
+          scanf("%f", &val);
+        } else if (src == from_random) {
+          //get a random value appropritate for that port, set it to val
+          val = get_port_random(descriptor->LADSPA_Plugin, j);
+        }
+        //add it to the array of pluginControlIns... starts at 0
+        pluginControlIns[controlIn] = val;
+        controlIn++;
       }
     }
   }
@@ -352,6 +365,7 @@ main(int argc, char **argv) {
    */
 
   controlIn = 0;
+  //iterate again here...
   for (int j = 0; j < descriptor->LADSPA_Plugin->PortCount; j++) {  
     /* j is LADSPA port number */
       
@@ -384,6 +398,7 @@ main(int argc, char **argv) {
       controlIn++;
     }
   }
+
 
   /* Activate */
 
