@@ -1,5 +1,5 @@
 #include "midi_loader.h"  
-#define DEBUG 1
+#define DEBUG 0
 event_table_t *event_table;
 
 int

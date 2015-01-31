@@ -1,6 +1,6 @@
 #include "dssi-render.h"
 #include "midi/midi_loader.h" 
-
+#define DEBUG 0
   /* Instead of creating an alsa midi input, we fill in two events
    * note-on and note-off */
 inline int
@@ -13,11 +13,15 @@ void ladspa_run_sample_callback(event_table_t *event_table, void *userdata){
   nframes = event_table->nframes_since_last;
   nframes = nframes > 0 ? nframes : 1;
 //is it nframes that has the negative value? or event_table length? well they are both size_t, can't be negative. i guess need to add prints to see what's going on
-  printf("nframes: 0x%x\n", nframes);
-  printf("outs: 0x%x\n", outs);
+  if(DEBUG){
+    printf("nframes: 0x%x\n", nframes);
+    printf("outs: 0x%x\n", outs);
+  }
   for (int i = 0; i < outs; i++) {
     pluginOutputBuffers[i] = (float *)realloc(pluginOutputBuffers[i], nframes * sizeof(float)); 
-    printf("i: 0x%x buff: 0x%x\n", i, pluginOutputBuffers[i]);
+    if (DEBUG){
+      printf("i: 0x%x buff: 0x%x\n", i, pluginOutputBuffers[i]);
+    }
     memset(pluginOutputBuffers[i], 0, nframes * sizeof(float));
 }
   connect_ports();
@@ -111,9 +115,10 @@ void ladspa_run_sample_callback(event_table_t *event_table, void *userdata){
       fprintf(stderr, "%s: %s\n", my_name, sf_strerror(outfile));
       return;
     }
-  fprintf(stdout, "%s: Wrote %d frames to %s\n", 
-	  my_name, items_written, output_file);
-    
+    if(DEBUG){
+      fprintf(stdout, "%s: Wrote %d frames to %s\n", 
+        my_name, items_written, output_file);
+    }
 }
 
 

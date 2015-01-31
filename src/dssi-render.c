@@ -313,7 +313,6 @@ main(int argc, char **argv) {
   connect_ports();
 
   /* Set the control port values */
-  printf("PORT COUNT: %d", descriptor->LADSPA_Plugin->PortCount);
 
   //FIXME change logic here
   if (src == from_preset) {
