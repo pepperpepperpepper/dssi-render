@@ -1195,6 +1195,9 @@ fluid_track_send_events(fluid_track_t *track,
         }
         else if (event->type == MIDI_SET_TEMPO) {
             fluid_player_set_midi_tempo(player, event->param1);
+      // send set tempo too
+            if (player->playback_callback)
+                player->playback_callback(player->playback_userdata, event);
         }
         else {
             if (player->playback_callback)

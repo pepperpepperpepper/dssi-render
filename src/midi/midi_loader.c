@@ -41,6 +41,21 @@ void delete_note_off_events(event_table_t *event_table){
     }
   }
 }
+// TODO cleanup code
+void delete_other_events(event_table_t *event_table){
+  size_t i;
+  for (i=0; i< event_table->length; i++){
+    if(! (event_table->events[i].type == SND_SEQ_EVENT_NOTEOFF || event_table->events[i].type == SND_SEQ_EVENT_NOTEON )){ 
+      if(DEBUG){
+        printf("removed_note_off_event\n");
+      }
+      memcpy(&event_table->events[i], &event_table->events[i+1], sizeof(snd_seq_event_t)*(event_table->length - i -1));
+      event_table->events = realloc(event_table->events, event_table->length * sizeof(snd_seq_event_t));
+      event_table->length--;
+      i--;
+    }
+  }
+}
 
 int compare_events(snd_seq_event_t *event1, snd_seq_event_t *event2){
   return (
@@ -206,6 +221,7 @@ int get_events(void *data, fluid_midi_event_t *event){
     //}
   }
   delete_note_off_events(event_table);  
+  delete_other_events(event_table);  
 
   switch(event->type){ 
     case NOTE_ON:
@@ -215,6 +231,8 @@ int get_events(void *data, fluid_midi_event_t *event){
       replace_events(event_table, &seq_event);     
       break;
     default:
+      // send other events too
+      insert_event(event_table, &seq_event); 
       break;
   }
   
